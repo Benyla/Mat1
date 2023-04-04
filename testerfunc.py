@@ -93,21 +93,76 @@ def niveaukurve_undersøgelse(f, c):
         print('Nan')
 
 
+#grad, retningsvektor og punkt matrix eller tuple. funcname skal defineres, ex: func = 'f'
+def retningsaflede_i_punkt(grad, retningsvektor, punkt, funcname, text=True):    
+    var_list = [x,y,z]
+    for i in range(len(punkt)):
+        if i < 1:
+            grad_i_punkt = grad.subs(var_list[i], punkt[i])
+        else:
+            grad_i_punkt = grad_i_punkt.subs(var_list[i], punkt[i])
+    enhedsretningsvektor = retningsvektor/retningsvektor.norm()
 
-#Tager en gradient på matrix form. funcvar er funktionens navn ex: funcvar = 'f'
-def stat_punkter_2_var(grad, funcvar, text=True):
+    if text == False:
+        return simplify(grad_i_punkt.dot(enhedsretningsvektor))
+    
+    string1 = r'''Den \: retningsaflede \: af \: {%s} \: i \: punktet \: {%s} \: i \: retningen \: givet \: ved \: retningsvektoren \: v = {%s} \: er \: givet \: ved: {%s}''' % (funcname, latex(punkt), latex(retningsvektor), latex(simplify(grad_i_punkt.dot(enhedsretningsvektor))))
+    display(Math(string1))
+
+    return simplify(grad_i_punkt.dot(enhedsretningsvektor))
+
+#grad og punkt matrix eller tuple. funcname skal defineres, ex: func = 'f'
+#Finder maksimale og minimale værdi af den retningsaflede i et givent punkt
+def bestem_maks_min_af_retningsaflede_i_punkt(grad, punkt, funcname, text=True):
+    var_list = [x,y,z]
+    for i in range(len(punkt)):
+        if i < 1:
+            grad_i_punkt = grad.subs(var_list[i], punkt[i])
+        else:
+            grad_i_punkt = grad_i_punkt.subs(var_list[i], punkt[i])
+    enhedsretningsvektor = Matrix([cos(u), sin(u)])
+    expr = grad_i_punkt.dot(enhedsretningsvektor)
+    sol = [s for s in solveset(diff(expr, u), u, Interval(-pi, pi))]
+    maks_min_liste = []
+    for i in range(len(sol)):
+        retning = Matrix([cos(sol[i]), sin(sol[i])])
+        maks_min_liste.append(grad_i_punkt.dot(retning))   
+
+    if text == False:
+        return maks_min_liste
+    
+    string1 = r'''Lad \: e \: være \: en \: retningsvektor \: givet \: ved \: e =(\cos (u),\sin (u))'''
+    string2 = r'''Gradienten \: i \: punktet \: er \: givet \: ved \: \nabla {%s} \left(x_{o},y_{0}\right) = \nabla {%s} \left({%s},{%s}\right) = {%s}''' % (funcname, funcname, latex(punkt[0]), latex(punkt[1]), latex(grad_i_punkt))
+    string3 = r'''Vi \: kan \: da \: finde \: et \: udtryk \: for \: den \: retningsaflede \: i \: alle \: retninger \: ved: \nabla {%s} \left({%s},{%s}\right) \cdot e = {%s}''' %(funcname,latex(punkt[0]), latex(punkt[1]), latex(expr))
+    string4 = r'''Jeg \: finder \: nu \: løsningerne \: for \: \frac{\partial}{\partial u}\left({%s}\right) = 0 \leftrightarrow u = {%s} \: i \: intervallet \: [-\pi,\pi] ''' % (latex(expr), latex(sol))
+    string5 = r'''Nu \: kan \: løsningerne \: indsættes \: i \: e \: og \: derefter \: findes \: prikproduktet \: mellem \: \nabla {%s} \left({%s},{%s}\right) \: og \: e''' % (funcname, latex(punkt[0]), latex(punkt[1]))
+    string6 = r'''Den \: maksiamel \: værdi \: af \: den \: retningsaflede \: i \: punktet \: \left({%s},{%s}\right) \: er \: altså \: givet \: ved \: {%s}''' %(latex(punkt[0]), latex(punkt[1]), latex(max(maks_min_liste)))
+    string7 = r'''Den \: mindste \: værdi \: af \: den \: retningsaflede \: i \: punktet \: \left({%s},{%s}\right) \: er \: givet \: ved \: {%s}''' %(latex(punkt[0]), latex(punkt[1]), latex(min(maks_min_liste)))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
+
+    return maks_min_liste
+
+
+#Tager en gradient på matrix form. funcname er funktionens navn ex: funcname = 'f'
+def stat_punkter_2_var(grad, funcname, text=True):
     eq1 = Eq(grad[0], 0)
     eq2 = Eq(grad[1], 0)
     if text == False:
         return solve([eq1, eq2], [x,y])
     string1 = r'''De \: stationære \: punkter \: findes \: ved at \: løse \: følgende \: ligningssystem:'''
-    string2 = r'''\frac{\partial}{\partial x}{%s}=0''' % (latex(funcvar))
-    string3 = r'''\frac{\partial}{\partial y}{%s}=0''' % (latex(funcvar))
+    string2 = r'''\frac{\partial}{\partial x}{%s}=0''' % (funcname)
+    string3 = r'''\frac{\partial}{\partial y}{%s}=0''' % (funcname)
     string4 = r'''Herved \: opstilles \: ligningssystemet:'''
     string5 = r'''{%s}=0''' % (latex(grad[0]))
     string6 = r'''{%s}=0''' % (latex(grad[1]))
     string7 = r'''Løsningerne \: udregnes \: til: {%s}''' % (latex(solve([eq1, eq2], [x,y])))
-    string8 = r'''Følgende \: er \: altså \: stationære \: punkter \: for \: funktionen, {%s}:''' % (latex(funcvar))
+    string8 = r'''Følgende \: er \: altså \: stationære \: punkter \: for \: funktionen, {%s}:''' % (funcname)
     display(Math(string1))
     display(Math(string2))
     display(Math(string3))
@@ -122,23 +177,23 @@ def stat_punkter_2_var(grad, funcvar, text=True):
     return solve([eq1, eq2], [x,y])
 
 
-#Tager en gradient på matrix form. funcvar er funktionens navn ex: funcvar = 'f'
-def stat_punkter_3_var(grad, funcvar, text=True):
+#Tager en gradient på matrix form. funcname er funktionens navn ex: funcname = 'f'
+def stat_punkter_3_var(grad, funcname, text=True):
     eq1 = Eq(grad[0], 0)
     eq2 = Eq(grad[1], 0)
     eq3 = Eq(grad[2], 0)
     if text == False:
         return solve([eq1, eq2, eq3], [x,y,z])
     string1 = r'''De \: stationære \: punkter \: findes \: ved at \: løse \: følgende \: ligningssystem:'''
-    string2 = r'''\frac{\partial}{\partial x}{%s}=0''' % (latex(funcvar))
-    string3 = r'''\frac{\partial}{\partial y}{%s}=0''' % (latex(funcvar))
-    string4 = r'''\frac{\partial}{\partial z}{%s}=0''' % (latex(funcvar))
+    string2 = r'''\frac{\partial}{\partial x}{%s}=0''' % (funcname)
+    string3 = r'''\frac{\partial}{\partial y}{%s}=0''' % (funcname)
+    string4 = r'''\frac{\partial}{\partial z}{%s}=0''' % (funcname)
     string5 = r'''Herved \: opstilles \: ligningssystemet:'''
     string6 = r'''{%s}=0''' % (latex(grad[0]))
     string7 = r'''{%s}=0''' % (latex(grad[1]))
     string8 = r'''{%s}=0''' % (latex(grad[2]))
     string9 = r'''Løsningerne \: udregnes \: til: {%s}''' % (latex(solve([eq1, eq2, eq3], [x,y,z])))
-    string10 = r'''Følgende \: er \: altså \: stationære \: punkter \: for \: funktionen, {%s}:''' % (latex(funcvar))
+    string10 = r'''Følgende \: er \: altså \: stationære \: punkter \: for \: funktionen, {%s}:''' % (funcname)
     display(Math(string1))
     display(Math(string2))
     display(Math(string3))
