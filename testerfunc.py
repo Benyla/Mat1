@@ -332,9 +332,11 @@ def diagonalisering(A, text=True):
     for i in range(len(A.row(0))):
         geo_sum += data[i][1]
     if len(data) == len(A.row(0)) or geo_sum == len(A.row(0)):
-        print('kriteriet er opfyldt, for at der kan diagonaliseres ved similartransformation')
+        if text == True:
+            print('kriteriet er opfyldt, for at der kan diagonaliseres ved similartransformation')
     else:
-        print('kriteriet for at der kan diagonaliseres ved similartransformation, er ikke opfyldt')
+        if text == True:
+            print('kriteriet for at der kan diagonaliseres ved similartransformation, er ikke opfyldt')
     
     egenvals = []
     Q_matrix = Matrix([])
@@ -365,7 +367,7 @@ def kvadratisk_form_til_reducerede_from(f, text=True):
     x_y = f.coeff(x*y)
     kvadratisk_form_var = (x_x*x**2)+(y_y*y**2)+(x_y*x*y)
     A = Matrix([[x_x, x_y/2], [x_y/2, y_y]])
-    Q_matrix, lambda_matrix = diagonalisering(A)
+    Q_matrix, lambda_matrix = diagonalisering(A, text=False)
     reducerede_form = Matrix([x1,y1]).T*lambda_matrix*Matrix([x1,y1])
     reducerede_form_kun_det_kvadratiske = reducerede_form
     x_single = f.coeff(x).subs(y,0)
