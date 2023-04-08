@@ -323,3 +323,80 @@ def stam_til_vektorfelt(V):
     delres = Matrix([Vuxuyuz[0].subs(x, V[0]), Vuxuyuz[1].subs(y, V[1]), Vuxuyuz[2].subs(z, V[2])])
     sol = Matrix([x,y,z]).dot(Matrix([integrate(delres[0], (u,0,1)), integrate(delres[1], (u,0,1)), integrate(delres[2], (u,0,1))]))
     return sol
+
+
+#Tager en matrix som input
+def diagonalisering(A, text=True):
+    data = A.eigenvects()
+    geo_sum = 0
+    for i in range(len(A.row(0))):
+        geo_sum += data[i][1]
+    if len(data) == len(A.row(0)) or geo_sum == len(A.row(0)):
+        print('kriteriet er opfyldt, for at der kan diagonaliseres ved similartransformation')
+    else:
+        print('kriteriet for at der kan diagonaliseres ved similartransformation, er ikke opfyldt')
+    
+    egenvals = []
+    Q_matrix = Matrix([])
+    for i in range(len(A.row(0))):
+        egenvals.append(data[i][0])
+        divider = ((data[i][2][0]).norm()) #could cause error
+        sol = ((data[i][2][0])/divider)
+        Q_matrix = Q_matrix.col_insert(i, sol)
+    lambda_matrix = diag(*egenvals)
+
+    if text == False:
+        return Q_matrix, lambda_matrix
+    
+    string1 = r'''Da \: A \: er \: symetrisk \: findes \: der \: en \: ortogonal \: matrix, \: Q, \: således \: at \: Q^{T}AQ=\Lambda '''
+    string2 = r'''Lambda-matricen \: dannes \: ved \: at \: lade \: {%s}'s \: egenværdier \: løbe \: i \: diagonalen: \Lambda = {%s}''' % (retrieve_name(A)[0], latex(lambda_matrix))
+    string3 = r'''Q-matricen, \: dannes \: ved \: at \: indsætte \: {%s}'s \: egenvektorer \: (normeret), \: som \: søjler \: i \: Q. \: Q = {%s}''' % (retrieve_name(A)[0], latex(Q_matrix))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    return Q_matrix, lambda_matrix
+
+
+#Tager en funktion af 2 variable som input (kun x,y for nu)
+def kvadratisk_form_til_reducerede_from(f, text=True):
+    x1, y1 = symbols('x1,y1')
+    x_x = f.coeff(x**2)
+    y_y = f.coeff(y**2)
+    x_y = f.coeff(x*y)
+    kvadratisk_form_var = (x_x*x**2)+(y_y*y**2)+(x_y*x*y)
+    A = Matrix([[x_x, x_y/2], [x_y/2, y_y]])
+    Q_matrix, lambda_matrix = diagonalisering(A)
+    reducerede_form = Matrix([x1,y1]).T*lambda_matrix*Matrix([x1,y1])
+    reducerede_form_kun_det_kvadratiske = reducerede_form
+    x_single = f.coeff(x).subs(y,0)
+    y_single = f.coeff(y).subs(x,0)
+    konstanter = f.subs(x,0).subs(y,0)
+    reducerede_form += (Matrix([x_single, 0]).T*Q_matrix*Matrix([x1,y1]))
+    reducerede_form += (Matrix([0, y_single]).T*Q_matrix*Matrix([x1,y1]))
+    reducerede_form += Matrix([[konstanter]])
+
+    if text == False:
+        return reducerede_form
+    
+    string1 = r'''En \: del \: af \: funktionen, \: {%s}, \: optræder \: på \: kvadratisk \: form.\: Nemlig \: {%s}''' % (retrieve_name(f)[0], latex(kvadratisk_form_var))
+    string2 = r'''Dette \: kan \: omskrives \: til: \: {%s}= \begin{matrix}x & y\end{matrix} A  \begin{matrix} x \\ y \end{matrix}, \: hvor \: A = {%s}''' % (latex(kvadratisk_form_var), latex(A))
+    string3 = r'''Da \: A \: er \: symetrisk \: findes \: der \: en \: ortogonal \: matrix, \: Q, \: således \: at \: Q^{T}AQ=\Lambda '''
+    string4 = r'''Gennem \: en \: række \: omregninger, \: kan \: det \: vises \: at \: \: \begin{matrix}x & y\end{matrix} A  \begin{matrix} x \\ y \end{matrix} = \begin{matrix} x_{1} \\ y_{1} \end{matrix}^{T}\Lambda \: \begin{matrix} x_{1} \\ y_{1} \end{matrix}={%s}''' % (latex(reducerede_form_kun_det_kvadratiske))
+    string5 = r'''Den \: resterende \: del \: af \: funktionen, \: {%s}, \: kan \: ligeledes \: udtrykkes \: i \: det \: nye \: koordinatsysstem \: ved \: at \: anvende \: basisskiftematricen, \: Q''' % (retrieve_name(f)[0])
+    string6 = r'''Hermed \: kan \: vi \: opskrive \: funktionen, \: {%s}, \: udtrykt \: i \: det \: nye \: koordinatsystem \: (x_{1},y_{1}) \: ved: {%s}''' % (retrieve_name(f)[0], latex(reducerede_form))
+    string7 = r'''Basisskiftematrice, \: Q, \: er \: givet \: ved: Q = {%s}'''  % (latex(Q_matrix))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
+    
+    return reducerede_form
+
+
+
+
+
+    
