@@ -19,8 +19,8 @@ def num_of_vars(f):
 
 
 
-
-def flux(V, r, firstint, secondint):
+#Fluxen gennem flade
+def flux_gennem_flade(V, r, firstint, secondint):
     if firstint[0] == symbols('u'):
         uint = firstint
         vint = secondint
@@ -31,7 +31,7 @@ def flux(V, r, firstint, secondint):
     nf = diff(r,u).cross(diff(r,v))
     return simplify(integrate(integrate(vruv.dot(nf), (u,uint[1],uint[2])), (v,vint[1],vint[2])))
 
-
+#Jacobi-funktion for en kruve
 def jacobi_kurve(r, var):
     rdiff = diff(r,var)
     if len(rdiff) == 2:
@@ -275,7 +275,7 @@ def rumintegral_vol(r, uint, vint, wint):
     return integrate(jacobi_rum(r), (u,uint[1],uint[2]), (v,vint[1],vint[2]), (w,wint[1],wint[2]))
 
 #Bruges til at beregne masse, hvor funktionen f, er en masse tæthedsfunktion
-def fladeintegral_over_func(f, r, uint, vint, text=True):
+def fladeintegral_af_func_over_flade(f, r, uint, vint, text=True):
     fruv = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
     sol = integrate(fruv*jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
     if text == None:
@@ -316,15 +316,16 @@ def jacobi_flade(r,u,v, text=True):
     display(Math(string2))
     return sol
 
-def tangentielle_kurveintegral(V, r, var, tstart, tslut):
-    vru = V.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
-    return integrate(vru*jacobi_kurve(r, var), (var, tstart, tslut))
+#var er var i parameterfremstilligen
+def kurveintegral_af_f_over_kurve(f, r, var, start, slut):
+    vru = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
+    return integrate(vru*jacobi_kurve(r, var), (var, start, slut))
 
-def rot(V):
+def rott(V):
     return Matrix([(diff(V[2], y)-diff(V[1], z)), (diff(V[0], z)-diff(V[2], x)), (diff(V[1], x)-diff(V[0], y))])
 
 def tjek_v_gradfelt(V):
-    if rot(V).norm() == 0:
+    if rott(V).norm() == 0:
         return True
     else:
         return False
