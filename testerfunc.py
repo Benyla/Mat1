@@ -1,8 +1,10 @@
 from sympy import *
-from sympy.abc import x,y,z,v,u,w
+from sympy.abc import v,u,w,x,y,z
 from IPython.display import display, Math, Latex
 import inspect
 init_printing()
+
+
 
 
 # non math related
@@ -302,8 +304,16 @@ def fladeintegral_over_func(f, r, uint, vint, text=True):
 def fladeintegral_areal(r, uint, vint):
     return integrate(jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
 
-def jacobi_flade(r):
-    return simplify((diff(r, u).cross(diff(r,v))).norm())
+#Tager en parameterfremstilling og 2 symboler.
+def jacobi_flade(r,u,v, text=True):
+    sol = simplify((diff(r, u).cross(diff(r, v))).norm())
+    if text == False:
+        return sol
+    string1 = r'''Givet \: en \: parameterfremstilling, \: r, \: for \: en \: flade, \: F, \: i \: rummet. \: Den \: til \: r \: hørende \: Jacobifunktion \: udregnes \: således:'''
+    string2 = r'''Jacobi_{r} = |\frac{\partial}{\partial {%s}}r\left({%s},{%s}\right)\times \frac{\partial}{\partial {%s}}r\left({%s},{%s}\right)| = |{%s} \times {%s}| = {%s}''' % (retrieve_name(u)[0], retrieve_name(u)[0], retrieve_name(v)[0], retrieve_name(v)[0], retrieve_name(u)[0], retrieve_name(v)[0], latex(diff(r, u)), latex(diff(r, v)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    return sol
 
 def tangentielle_kurveintegral(V, r, var, tstart, tslut):
     vru = V.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
@@ -398,7 +408,20 @@ def kvadratisk_form_til_reducerede_from(f, text=True):
     return reducerede_form
 
 
+# Tager et udtryk (udtrykt i x,y only!) og give complete square
+# Et eksempel kunne være expr = 5*x**2 + 4*y**2 + 20*x + 12*y + 9
+def complete_square(expr):
+    x_x = expr.coeff(x**2)
+    y_y = expr.coeff(y**2)
+    x_ = expr.coeff(x)
+    y_ = expr.coeff(y)
+    complete_square_sol = x_x*(x+((x_/2)/x_x))**2 + y_y*(y+((y_/2)/y_y))**2
+    complete_square_konstant = (expand(complete_square_sol)).subs(x,0).subs(y,0)
+    expr_konstant = expr.subs(x,0).subs(y,0)
+
+    if complete_square_konstant == expr_konstant:
+        return complete_square_sol
+    else:
+        return Eq(complete_square_sol, abs(complete_square_konstant-expr_konstant))
 
 
-
-    
