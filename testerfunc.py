@@ -257,7 +257,7 @@ def approksimerende_andengrads_pol(f, udviklingspunkt):
     return first + second + third + fourth
 
 
-def div(V, vars):
+def divv(V, vars):
     dV = Matrix([diff(V[i], vars[i]) for i in range(len(V))])
     return sum(dV[i] for i in range(len(V)))
 
@@ -274,7 +274,7 @@ def kugle_rumfang(r):
 def rumintegral_vol(r, uint, vint, wint):
     return integrate(jacobi_rum(r), (u,uint[1],uint[2]), (v,vint[1],vint[2]), (w,wint[1],wint[2]))
 
-
+#Bruges til at beregne masse, hvor funktionen f, er en masse tæthedsfunktion
 def fladeintegral_over_func(f, r, uint, vint, text=True):
     fruv = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
     sol = integrate(fruv*jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
@@ -300,6 +300,8 @@ def fladeintegral_over_func(f, r, uint, vint, text=True):
     display(Math(string9))
     return sol
 
+def fladeintegral_masse(massefunktion, r, uint, vint):
+    return integrate()
 
 def fladeintegral_areal(r, uint, vint):
     return integrate(jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
@@ -423,5 +425,29 @@ def complete_square(expr):
         return complete_square_sol
     else:
         return Eq(complete_square_sol, abs(complete_square_konstant-expr_konstant))
+
+
+#Bestemmer fluxen gennem et lukket rumligt område
+def gauss(V, r, uint, vint, wint, text=True):
+    integrant = divv(V, (x,y,z)).subs(x,r[0]).subs(y,r[1]).subs(z,r[2])
+    sol = integrate(integrant*jacobi_rum(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]), (w, wint[1], wint[2]))
+    if text == False:
+        return sol
+    string1 = r'''Gauss' \: divergens-sætninger \: siger, \: at \: fluxen \int_{\partial \Omega}^{}V\cdot n \: d\mathit{\mu}, \: kan \: bestemmes \: ved \int_{\partial \Omega}^{}V\cdot n \: d\mathit{\mu} = \int_{\Omega r}^{}\mathit{Div}\left(V\right)d\mathit{\mu}, \: for \: et \: lukket \: rumligt \: område, \: \Omega'''
+    string2 = r'''\int_{\partial \Omega}^{}V\cdot n \: d\mathit{\mu} = \int_{\Omega r}^{}\mathit{Div}\left(V\right)d\mathit{\mu} = \int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\mathit{Div}\left(V\right)\left(r\left(u,v,w\right)\right) \mathit{Jacobi}\left(u,v,w\right)\mathit{dudvdw}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(wint[1]), latex(wint[2]))
+    string3 = r'''Divergensen \: er \: givet \: ved \: Div(V)={%s}''' % (latex(divv(V, (x,y,z))))
+    string4 = r'''\mathit{Div}\left(V\right)\left(r\left(u,v,w\right)\right) = {%s}''' % (latex(integrant))
+    string5 = r'''Jacobi_{r} = {%s}''' % (latex(jacobi_rum(r)))
+    string6 = r'''Hermed \: er \: den \: samlede \: integrant \: givet \: ved: {%s}''' % (latex(integrant*jacobi_rum(r)))
+    string7 = r'''Nu \: kan \: integrallet \: udregnes: \int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\mathit{Div}\left(V\right)\left(r\left(u,v,w\right)\right) \mathit{Jacobi}\left(u,v,w\right)\mathit{dudvdw} = \int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}} {%s} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(wint[1]), latex(wint[2]), latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(wint[1]), latex(wint[2]), latex(integrant*jacobi_rum(r)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
+    return sol
+
 
 
