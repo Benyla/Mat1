@@ -300,8 +300,7 @@ def fladeintegral_over_func(f, r, uint, vint, text=True):
     display(Math(string9))
     return sol
 
-def fladeintegral_masse(massefunktion, r, uint, vint):
-    return integrate()
+
 
 def fladeintegral_areal(r, uint, vint):
     return integrate(jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
