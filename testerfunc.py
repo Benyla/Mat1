@@ -449,5 +449,48 @@ def gauss(V, r, uint, vint, wint, text=True):
     display(Math(string7))
     return sol
 
+def jacobi_plan(r, u, v, text=True):
+    sol = abs(det(Matrix([[diff(r[0], u), diff(r[0], v)], [diff(r[1], u), diff(r[1], v)]])))
+    if text == False:
+        return sol
+    string1 = r'''Jacobi-funktionen \: for \: et \: plant \: område \: i \: planen \: er \: givet \: ved: |\det\left(\left[\begin{array}{cc}
+\frac{\partial x}{\partial u}r\left(u,v\right) & \frac{\partial x}{\partial v}r\left(u,v\right) 
+\\
+ \frac{\partial y}{\partial u}r\left(u,v\right) & \frac{\partial y}{\partial v}r\left(u,v\right) 
+\end{array}\right]\right)| = |\det\left(\left[\begin{array}{cc}
+{%s} & {%s} 
+\\
+ {%s} & {%s} 
+\end{array}\right]\right)| = {%s}''' % (latex(diff(r[0], u)), latex(diff(r[0], v)), latex(diff(r[1], u)), latex(diff(r[1], v)), latex(sol))
+    display(Math(string1))
+    return sol
 
 
+def planintegral_af_func_over_plan(f, r, uint, vint, text=True):
+    fruv = f.subs(x, r[0]).subs(y, r[1])
+    sol = integrate(fruv*jacobi_plan(r, u, v, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
+    if text == None:
+        return simplify(sol)
+    string1 = r'''Planintegralet \: af \: funktionen \: f\left(x,y\right) \: over \: det \: parametriserede \: område \: P_{r} \: defineres \: ved:'''
+    string2 = r'''\int_{F_{r}} f \: d\mu = \int_{c}^{d}\int_{a}^{b}f\left(r\left(u,v\right)\right)\mathit{Jacobi}_{r}\left(u,v\right)\mathit{dudv}'''
+    string3 = r'''Her \: er \: \mathit{Jacobi}_{r}\left(u,v\right) \: givet \: ved:'''
+    string4 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=|\det\left(\left[\begin{array}{cc}
+\frac{\partial x}{\partial u}r\left(u,v\right) & \frac{\partial x}{\partial v}r\left(u,v\right) 
+\\
+ \frac{\partial y}{\partial u}r\left(u,v\right) & \frac{\partial y}{\partial v}r\left(u,v\right) 
+\end{array}\right]\right)| '''
+    string5 = r'''Jeg \: bestemmer \: først \: f\left(r\left(u,v\right)\right) \: og \: \mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right) '''
+    string6 = r'''f\left(r\left(u,v\right)\right) = {%s}''' % (latex(fruv))
+    string7 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| = {%s} ''' % (latex(jacobi_plan(r, u, v, text=False)))
+    string8 = r'''Nu \: indsættes \: i \: formlen \: sammen \: med \: grænserne \: u \in [%s ,%s]\mathit{og} \: v \in [%s ,%s]''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]))
+    string9 = r'''\int_{P_{r}} f \: d\mu = \int_{%s}^{%s}\int_{%s}^{%s}{%s}{%s}\mathit{dudv} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(fruv), latex(jacobi_plan(r, u, v, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
+    display(Math(string8))
+    display(Math(string9))
+    return simplify(sol)
