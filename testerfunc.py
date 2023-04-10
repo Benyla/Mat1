@@ -263,7 +263,7 @@ def divv(V, vars):
 
 
 
-def jacobi_rum(r):
+def jacobi_rum(r, u, v, w):
     return simplify(det(Matrix([[diff(r[0], u), diff(r[0], v), diff(r[0], w)], 
                        [diff(r[1], u), diff(r[1], v), diff(r[1], w)], 
                        [diff(r[2], u), diff(r[2], v), diff(r[2], w)]])))
@@ -484,6 +484,38 @@ def planintegral_af_func_over_plan(f, r, uint, vint, text=True):
     string7 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| = {%s} ''' % (latex(jacobi_plan(r, u, v, text=False)))
     string8 = r'''Nu \: indsættes \: i \: formlen \: sammen \: med \: grænserne \: u \in [%s ,%s]\mathit{og} \: v \in [%s ,%s]''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]))
     string9 = r'''\int_{P_{r}} f \: d\mu = \int_{%s}^{%s}\int_{%s}^{%s}{%s}{%s}\mathit{dudv} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(fruv), latex(jacobi_plan(r, u, v, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
+    display(Math(string8))
+    display(Math(string9))
+    return simplify(sol)
+
+
+def rumintegral_af_func_over_rumobjekt(f, r, uint, vint, wint, text=True):
+    fruv = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
+    sol = integrate(fruv*jacobi_rum(r, u, v, w, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]), (w, wint[1], wint[2]))
+    if text == None:
+        return simplify(sol)
+    string1 = r'''Rumintegralet \: af \: funktionen \: f\left(x,y,z\right) \: over \: det \: parametriserede \: rumlige \: område \: \Omega_{r} \: defineres \: ved:'''
+    string2 = r'''\int_{\Omega_{r}} f \: d\mu = \int_{h}^{l}\int_{c}^{d}\int_{a}^{b}f\left(r\left(u,v,w\right)\right)\mathit{Jacobi}_{r}\left(u,v,w\right)\mathit{dudvdw}'''
+    string3 = r'''Her \: er \: \mathit{Jacobi}_{r}\left(u,v,w\right) \: givet \: ved:'''
+    string4 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v,w\right)=|\det\left(\left[\begin{array}{cc}
+\frac{\partial x}{\partial u}r\left(u,v,w\right) & \frac{\partial x}{\partial v}r\left(u,v,w\right) & \frac{\partial x}{\partial w}r\left(u,v,w\right) 
+\\
+ \frac{\partial y}{\partial u}r\left(u,v,w\right) & \frac{\partial y}{\partial v}r\left(u,v,w\right) & \frac{\partial y}{\partial w}r\left(u,v,w\right)
+\\
+ \frac{\partial z}{\partial u}r\left(u,v,w\right) & \frac{\partial z}{\partial v}r\left(u,v,w\right) & \frac{\partial z}{\partial w}r\left(u,v,w\right)
+\end{array}\right]\right)| '''
+    string5 = r'''Jeg \: bestemmer \: først \: f\left(r\left(u,v,w\right)\right) \: og \: \mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v,w\right) '''
+    string6 = r'''f\left(r\left(u,v,w\right)\right) = {%s}''' % (latex(fruv))
+    string7 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v,w\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| = {%s} ''' % (latex(jacobi_rum(r, u, v, w, text=False)))
+    string8 = r'''Nu \: indsættes \: i \: formlen \: sammen \: med \: grænserne \: u \in [%s ,%s]\mathit{og} \: v \in [%s ,%s]\mathit{og} \: w \in [%s ,%s]''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(wint[1]), latex(wint[2]))
+    string9 = r'''\int_{\Omega_{r}} f \: d\mu = \int_{%s}^{%s}\int_{%s}^{%s}\int_{%s}^{%s}{%s}{%s}\mathit{dudvdw} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(wint[1]), latex(wint[2]), latex(fruv), latex(jacobi_plan(r, u, v, text=False)), latex(sol))
     display(Math(string1))
     display(Math(string2))
     display(Math(string3))
