@@ -8,6 +8,8 @@ init_printing()
 
 
 # non math related
+
+#Hvis den bruges i en funktion, der kaldes inden i en anden funktion fucker det op
 def retrieve_name(var):
     callers_local_vars = inspect.currentframe().f_back.f_back.f_locals.items()
     return [var_name for var_name, var_val in callers_local_vars if var_val is var]
@@ -32,8 +34,8 @@ def flux_gennem_flade(V, r, firstint, secondint):
     return simplify(integrate(integrate(vruv.dot(nf), (u,uint[1],uint[2])), (v,vint[1],vint[2])))
 
 #Jacobi-funktion for en kruve
-def jacobi_kurve(r, var):
-    rdiff = diff(r,var)
+def jacobi_kurve(r, u, text=True):
+    rdiff = diff(r, u)
     if len(rdiff) == 2:
         return simplify(sqrt(rdiff[0]**2+rdiff[1]**2))
     else:
@@ -263,10 +265,29 @@ def divv(V, vars):
 
 
 
-def jacobi_rum(r, u, v, w):
-    return simplify(det(Matrix([[diff(r[0], u), diff(r[0], v), diff(r[0], w)], 
+def jacobi_rum(r, u, v, w, text=True):
+    sol = simplify(abs(det(Matrix([[diff(r[0], u), diff(r[0], v), diff(r[0], w)], 
                        [diff(r[1], u), diff(r[1], v), diff(r[1], w)], 
-                       [diff(r[2], u), diff(r[2], v), diff(r[2], w)]])))
+                       [diff(r[2], u), diff(r[2], v), diff(r[2], w)]]))))
+    if text == False:
+        return sol
+    string1 = r'''Givet \: en \: parameterfremstilling, \: r, \: for \: et \: rumligt \: område, \: \Omega, \: i \: rummet. \: Den \: til \: r \: hørende \: Jacobifunktion \: udregnes \: således:'''
+    string2 = r'''Jacobi_{r} = |\det\left(\left[\begin{array}{cc}
+\frac{\partial x}{\partial u}r\left(u,v,w\right) & \frac{\partial x}{\partial v}r\left(u,v,w\right) & \frac{\partial x}{\partial w}r\left(u,v,w\right) 
+\\
+ \frac{\partial y}{\partial u}r\left(u,v,w\right) & \frac{\partial y}{\partial v}r\left(u,v,w\right) & \frac{\partial y}{\partial w}r\left(u,v,w\right)
+\\
+ \frac{\partial z}{\partial u}r\left(u,v,w\right) & \frac{\partial z}{\partial v}r\left(u,v,w\right) & \frac{\partial z}{\partial w}r\left(u,v,w\right)
+\end{array}\right]\right)| = |\left[\begin{array}{ccc}
+{%s}  & {%s}  & {%s}  
+\\
+ {%s}  & {%s}  & {%s}  
+\\
+ {%s}  & {%s}  & {%s}  
+\end{array}\right]| = {%s}''' % (latex(diff(r[0], u)), latex(diff(r[0], v)), latex(diff(r[0], w)), latex(diff(r[1], u)), latex(diff(r[1], v)), latex(diff(r[1], w)), latex(diff(r[2], u)), latex(diff(r[2], v)), latex(diff(r[2], w)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    return sol
 
 def kugle_rumfang(r):
     return (S(4)/3)*pi*r**3
@@ -311,7 +332,7 @@ def jacobi_flade(r,u,v, text=True):
     if text == False:
         return sol
     string1 = r'''Givet \: en \: parameterfremstilling, \: r, \: for \: en \: flade, \: F, \: i \: rummet. \: Den \: til \: r \: hørende \: Jacobifunktion \: udregnes \: således:'''
-    string2 = r'''Jacobi_{r} = |\frac{\partial}{\partial {%s}}r\left({%s},{%s}\right)\times \frac{\partial}{\partial {%s}}r\left({%s},{%s}\right)| = |{%s} \times {%s}| = {%s}''' % (retrieve_name(u)[0], retrieve_name(u)[0], retrieve_name(v)[0], retrieve_name(v)[0], retrieve_name(u)[0], retrieve_name(v)[0], latex(diff(r, u)), latex(diff(r, v)), latex(sol))
+    string2 = r'''Jacobi_{r} = |\frac{\partial}{\partial u}r\left(u,v\right)\times \frac{\partial}{\partial v}r\left(u,v\right)| = |{%s} \times {%s}| = {%s}''' % (latex(diff(r, u)), latex(diff(r, v)), latex(sol))
     display(Math(string1))
     display(Math(string2))
     return sol
@@ -526,3 +547,52 @@ def rumintegral_af_func_over_rumobjekt(f, r, uint, vint, wint, text=True):
     display(Math(string8))
     display(Math(string9))
     return simplify(sol)
+
+
+def length_af_kurve(r, uint, text=True):
+    sol = integrate(jacobi_kurve(r, u, text=False), (u, uint[1], uint[2]))
+    if text==False:
+        return sol
+    string1 = r'''Længden \: af \: den \: parametriserede \: kurve \: K_{r} : r\left(u\right)=\left(x\left(u\right),y\left(u\right),z\left(u\right)\right)u\in \left[a,b\right]'''
+    string2 = r'''defineres \: som \: kurveintegralet: \int_{K_{r}}^{}1d \mu = \int_{{a}}^{b}|r'\left(u\right)|d u'''
+    string3 = r'''Hvor \: integranten \: netop \: er \: Jacobi \: funktionen \: \mathit{Jacobi}_{r}\left(u\right)=|r'\left(u\right)|'''
+    string4 = r'''\mathit{Jacobi}_{r}\left(u\right)=|r'\left(u\right)|={%s}''' % (latex(jacobi_kurve(r, u, text=False)))
+    string5 = r'''\int_{K_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}{%s}d u = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(jacobi_kurve(r, u, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    return sol
+
+
+
+def areal_af_plant_area(r, uint, vint, text=True):
+    sol = integrate(jacobi_plan(r, u, v, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
+    if text==False:
+        return sol
+    string1 = r'''Arealet \: af \: et \: parametriseret \: plant \: område \: B_{r} : r\left(u,v\right)=\left(x\left(u,v\right),y\left(u,v\right)\right)u\in \left[a,b\right] v\in \left[c,d\right]'''
+    string2 = r'''defineres \: som \: planintegralet: \int_{B_{r}}^{}1d \mu = \int_{{c}}^{d}\int_{{a}}^{b}Jacobi_{r} \:d u d v'''
+    string4 = r'''\int_{B_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}{%s}d u d v = {%s}''' % (latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(jacobi_plan(r, u, v, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    string3 = r'''Hermed \: er \: Jacobi \: funktionen \: givet \: ved: {%s}''' % (latex(jacobi_plan(r, u, v)))
+    display(Math(string3))
+    display(Math(string4))
+    return sol
+
+
+def fladeintegral_areal(r, uint, vint, text=True):
+    sol = integrate(jacobi_flade(r, u ,v, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
+    if text==False:
+        return sol
+    string1 = r'''Arealet \: af \: den \: parametriserede \: flade \: F_{r} : r\left(u,v\right)=\left(x\left(u,v\right),y\left(u,v\right),z\left(u,v\right)\right)u\in \left[a,b\right] v\in \left[c,d\right]'''
+    string2 = r'''defineres \: som \: fladeintegralet: \int_{F_{r}}^{}1d \mu = \int_{{c}}^{d}\int_{{a}}^{b}Jacobi_{r} \:d u d v'''
+    display(Math(string1))
+    display(Math(string2))
+    string3 = r'''Hermed \: er \: Jacobi \: funktionen \: givet \: ved: {%s}''' % (latex(jacobi_flade(r, u, v)))
+    display(Math(string3))
+    string4 = r'''\int_{F_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}{%s}d u d v = {%s}''' % (latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(jacobi_flade(r, u, v, text=False)), latex(sol))
+    display(Math(string4))
+
+    return sol
