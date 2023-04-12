@@ -35,11 +35,18 @@ def flux_gennem_flade(V, r, firstint, secondint):
 
 #Jacobi-funktion for en kruve
 def jacobi_kurve(r, u, text=True):
-    rdiff = diff(r, u)
-    if len(rdiff) == 2:
-        return simplify(sqrt(rdiff[0]**2+rdiff[1]**2))
-    else:
-        return simplify(sqrt(rdiff[0]**2+rdiff[1]**2+rdiff[2]**2))
+        sol = simplify((Matrix([diff(r[0],u), diff(r[1],u), diff(r[2],u)])).norm())
+        if text==False:
+                return sol
+        string1 = r'''Jacobi-funktionen \: for \: en \: kurve \: i \: planen \: og \: rummet \: er \: givet \: ved: \mathit{Jacobi}_{r}\left(u\right)=|r'\left(u\right)| = |\left[\begin{array}{c}
+{%s}  
+\\
+ {%s}   
+\\
+ {%s}   
+\end{array}\right]| = {%s}''' % (latex(diff(r[0],u)), latex(diff(r[1],u)), latex(diff(r[2],u)), latex(sol))
+        display(Math(string1))
+        return sol
 
 #fiks, så kan bruges uden med x frem for x(t)
 def flowkurve_w_bb_rum(V, tid, rt):
@@ -292,8 +299,19 @@ def jacobi_rum(r, u, v, w, text=True):
 def kugle_rumfang(r):
     return (S(4)/3)*pi*r**3
 
-def rumintegral_vol(r, uint, vint, wint):
-    return integrate(jacobi_rum(r), (u,uint[1],uint[2]), (v,vint[1],vint[2]), (w,wint[1],wint[2]))
+def rumintegral_vol(r, uint, vint, wint, text=True):
+    sol = integrate(jacobi_rum(r, u, v, w, text=False), (u,uint[1],uint[2]), (v,vint[1],vint[2]), (w,wint[1],wint[2]))
+    if text==False:
+        return sol
+    string1 = r'''Volumenet \: af \: den \: parametriserede \: rumlige \: område \: \Omega_{r} : r\left(u,v,w\right)=\left(x\left(u,v,w\right),y\left(u,v,w\right),z\left(u,v,w\right)\right)u\in \left[a,b\right] v\in \left[c,d\right] w\in \left[h,l\right]'''
+    string2 = r'''defineres \: som \: rumintegralet: \int_{\Omega_{r}}^{}1d \mu = \int_{{h}}^{l}\int_{{c}}^{d}\int_{{a}}^{b}Jacobi_{r} \:d u d v dw'''
+    display(Math(string1))
+    display(Math(string2))
+    string3 = r'''Hermed \: er \: Jacobi \: funktionen \: givet \: ved: {%s}''' % (latex(jacobi_rum(r, u, v, w)))
+    display(Math(string3))
+    string4 = r'''\int_{\Omega_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}{%s}d u d v dw = {%s}''' % (latex(wint[1]), latex(wint[2]), latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(jacobi_rum(r, u, v, w, text=False)), latex(sol))
+    display(Math(string4))
+    return sol
 
 #Bruges til at beregne masse, hvor funktionen f, er en masse tæthedsfunktion
 def fladeintegral_af_func_over_flade(f, r, uint, vint, text=True):
@@ -595,4 +613,27 @@ def fladeintegral_areal(r, uint, vint, text=True):
     string4 = r'''\int_{F_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}{%s}d u d v = {%s}''' % (latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(jacobi_flade(r, u, v, text=False)), latex(sol))
     display(Math(string4))
 
+    return sol
+
+
+
+def kurveintegral_af_f_over_kurve(f, r, u, start, slut, text=True):
+    fru = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
+    sol = integrate(fru*jacobi_kurve(r, u, text=False), (u, start, slut))
+    if text == False:
+        return sol
+    string1 = r'''Kurveintegralet \: af \: funktionen \: f\left(x,y,z\right) \: over \: det \: parametriserede \: kurve \: K_{r} \: defineres \: ved:'''
+    string2 = r'''\int_{K_{r}} f \: d\mu = \int_{a}^{b}f\left(r\left(u\right)\right)\mathit{Jacobi}_{r}\left(u\right)\mathit{du}'''
+    string4 = r'''Jeg \: bestemmer \: nu \: f\left(r\left(u\right)\right):'''
+    string5 = r'''f\left(r\left(u\right)\right) = {%s}''' % (latex(fru))
+    string6 = r'''Nu \: indsættes \: i \: formlen \: sammen \: med \: grænserne \: u \in [%s ,%s]''' % (latex(start), latex(slut))
+    string7 = r'''\int_{K_{r}} f \: d\mu = \int_{%s}^{%s}{%s}{%s}\mathit{du} = {%s}''' % (latex(start), latex(slut), latex(fru), latex(jacobi_kurve(r, u, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    string3 = r'''Her \: er \: \mathit{Jacobi}_{r}\left(u\right) \: altså \: givet \: ved: {%s}''' % (latex(jacobi_kurve(r,u)))
+    display(Math(string3))
+    display(Math(string4))
+    display(Math(string5))
+    display(Math(string6))
+    display(Math(string7))
     return sol
