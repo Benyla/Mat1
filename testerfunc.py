@@ -82,7 +82,7 @@ def grad(f):
 def niveaukurve(f, c, text=True):
     if text == False:
         return simplify(Eq(f,c))
-    string1 = r'''Niveaukurven \: for \: {%s} \: svarende \: til \: niveauet \: {%s} \: er \: givet \: ved: {%s}''' % (retrieve_name(f)[0], latex(c), latex(simplify(Eq(f,c))))
+    string1 = r'''Niveaukurven \: for \: {%s} \: svarende \: til \: niveauet \: {%s} \: er \: givet \: ved: {%s}''' % (str(retrieve_name(f)[0]), latex(c), latex(simplify(Eq(f,c))))
     display(Math(string1))
 
     return simplify(Eq(f,c))
@@ -90,18 +90,24 @@ def niveaukurve(f, c, text=True):
 #Funktionen her forsøger at give et udtryk for niveaukurven, som funktion af både x og y. 
 #Tager en funktion og konstant som input.
 def niveaukurve_undersøgelse(f, c):
+    done1 = 0
+    done2 = 0
     try:
         eq1 = simplify(Eq(solve(niveaukurve(f, c, text=False),y)[0], y))
+        done1 += 1
         string1 = r'''Niveaukurven \: for \: {%s} \: svarende \: til \: niveauet \: {%s} \: som \: funktion \: af \: x \: er \: givet \: ved: {%s}''' % (retrieve_name(f)[0], latex(c), latex(eq1))
         display(Math(string1))
     except:
-        print('NaN')
+        if done1 == 0:
+            print('NaN')
     try:
         eq2 = simplify(Eq(solve(niveaukurve(f, c, text=False),x)[0], x))
+        done2 += 1
         string2 = r'''Niveaukurven \: for \: {%s} \: svarende \: til \: niveauet \: {%s} \: som \: funktion \: af \: y \: er \: givet \: ved: {%s}''' % (retrieve_name(f)[0], latex(c), latex(eq2))
         display(Math(string2))
     except:
-        print('Nan')
+        if done1 == 0 and done2 == 0:
+            print('Nan')
 
 
 #grad, retningsvektor og punkt matrix eller tuple. funcname skal defineres, ex: func = 'f'
@@ -164,9 +170,15 @@ def bestem_maks_min_af_retningsaflede_i_punkt(grad, punkt, funcname, text=True):
 def stat_punkter_2_var(grad, funcname, text=True):
     eq1 = Eq(grad[0], 0)
     eq2 = Eq(grad[1], 0)
+    sol = solve([eq1, eq2], [x,y])
     if text == False:
+        if type(sol) == dict:
+            sollist = []
+            sollist.append(sol.get(x))
+            sollist.append(sol.get(y))
+            return sollist
         return solve([eq1, eq2], [x,y])
-    string1 = r'''De \: stationære \: punkter \: findes \: ved at \: løse \: følgende \: ligningssystem:'''
+    string1 = r'''De \: stationære \: punkter \: findes \: ved \: at \: løse \: følgende \: ligningssystem:'''
     string2 = r'''\frac{\partial}{\partial x}{%s}=0''' % (funcname)
     string3 = r'''\frac{\partial}{\partial y}{%s}=0''' % (funcname)
     string4 = r'''Herved \: opstilles \: ligningssystemet:'''
@@ -182,10 +194,16 @@ def stat_punkter_2_var(grad, funcname, text=True):
     display(Math(string6))
     display(Math(string7))
     display(Math(string8))
-    for i in range(len(solve([eq1, eq2], [x,y]))):
-        stringx = r'''Punkt \: {%s} = {%s}''' % (latex(i), latex((solve([eq1, eq2], [x,y])[i])))
-        display(Math(stringx))
-    return solve([eq1, eq2], [x,y])
+    if type(sol) == list:
+        for i in range(len(solve([eq1, eq2], [x,y]))):
+            stringx = r'''Punkt \: {%s} = {%s}''' % (latex(i), latex((solve([eq1, eq2], [x,y])[i])))
+            display(Math(stringx))
+        return solve([eq1, eq2], [x,y])
+    else:
+        sollist = []
+        sollist.append(sol.get(x))
+        sollist.append(sol.get(y))
+        return sollist
 
 
 #Tager en gradient på matrix form. funcname er funktionens navn ex: funcname = 'f'
@@ -228,20 +246,36 @@ def hesse_matrice(f):
 
 
 def analyse_af_stat_punkter(hesse_matrice, x0s, y0s):
+    if type(x0s) == int:
+        hesse_i_punkt = hesse_matrice.subs(x, x0s).subs(y, y0s)
+        stotval1 = (hesse_i_punkt.eigenvects()[0][0]).evalf()
+        stotval2 = (hesse_i_punkt.eigenvects()[1][0]).evalf()
+
+        if stotval1 > 0 and stotval2 > 0:
+            print('Funktionsværdien i punktet: ('+str(x0s)+','+str(y0s)+') er et egentligt lokalt minimum')
+        elif stotval1 < 0 and stotval2:
+            print('Funktionsværdien i punktet: ('+str(x0s)+','+str(y0s)+') er et egentligt lokalt maksimum')
+        elif stotval1*stotval2 < 0:
+            print('Funktionsværdien i punktet: ('+str(x0s)+','+str(y0s)+') er hverken lokal minimumsværdi eller maksimumsværdi')
+        else:
+            print('Ikke tilstrækkelig information. Kræver nærmere undersøgelse')
+        return 'done'
     sol = []
     for i in range(len(x0s)):
         hesse_i_punkt = hesse_matrice.subs(x, x0s[i]).subs(y, y0s[i])
+        #Kigger på egenværdierne
         sol.append(hesse_i_punkt.eigenvects()[0][0])
         sol.append(hesse_i_punkt.eigenvects()[1][0])
     for i in range(len(x0s)):
-        if sol[i].evalf() > 0 and sol[i+1].evalf() > 0:
-            print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er et egentligt lokalt minimum')
-        elif sol[i].evalf() < 0 and sol[i+1].evalf() < 0:
-            print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er et egentligt lokalt maksimum')
-        elif (sol[i].evalf()*sol[i+1].evalf()) < 0:
-            print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er hverken lokal minimumsværdi eller maksimumsværdi')
-        else:
-            print('Ikke tilstrækkelig information. Kræver nærmere undersøgelse')
+        if i%2 == 0:
+            if sol[i].evalf() > 0 and sol[i+1].evalf() > 0:
+                print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er et egentligt lokalt minimum')
+            elif sol[i].evalf() < 0 and sol[i+1].evalf() < 0:
+                print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er et egentligt lokalt maksimum')
+            elif (sol[i].evalf()*sol[i+1].evalf()) < 0:
+                print('Funktionsværdien i punktet: ('+str(x0s[i])+','+str(y0s[i])+') er hverken lokal minimumsværdi eller maksimumsværdi')
+            else:
+                print('Ikke tilstrækkelig information. Kræver nærmere undersøgelse')
 
 
 
@@ -316,7 +350,7 @@ def rumintegral_vol(r, uint, vint, wint, text=True):
 #Bruges til at beregne masse, hvor funktionen f, er en masse tæthedsfunktion
 def fladeintegral_af_func_over_flade(f, r, uint, vint, text=True):
     fruv = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
-    sol = integrate(fruv*jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
+    sol = integrate(fruv*jacobi_flade(r,u,v, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
     if text == None:
         return sol
     string1 = r'''Fladeintegralet \: af \: funktionen \: f\left(x,y,z\right) \: over \: den \: parametriserede \: falde \: F_{r} \: defineres \: ved:'''
@@ -325,9 +359,9 @@ def fladeintegral_af_func_over_flade(f, r, uint, vint, text=True):
     string4 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| '''
     string5 = r'''Jeg \: bestemmer \: først \: f\left(r\left(u,v\right)\right) \: og \: \mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right) '''
     string6 = r'''f\left(r\left(u,v\right)\right) = {%s}''' % (latex(fruv))
-    string7 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| = {%s} ''' % (latex(jacobi_flade(r)))
+    string7 = r'''\mathit{Jacobi}_{\boldsymbol{\mathit{r}}}\left(u,v\right)=| \: r_{u}^{\prime}\left(u,v\right)\times r_{v}^{\prime}\left(u,v\right)| = {%s} ''' % (latex(jacobi_flade(r,u,v, text=False)))
     string8 = r'''Nu \: indsættes \: i \: formlen \: sammen \: med \: grænserne \: u \in [%s ,%s]\mathit{og} \: v \in [%s ,%s]''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]))
-    string9 = r'''\int_{F_{r}} f \: d\mu = \int_{%s}^{%s}\int_{%s}^{%s}{%s}{%s}\mathit{dudv} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(fruv), latex(jacobi_flade(r)), latex(sol))
+    string9 = r'''\int_{F_{r}} f \: d\mu = \int_{%s}^{%s}\int_{%s}^{%s}{%s}{%s}\mathit{dudv} = {%s}''' % (latex(uint[1]), latex(uint[2]), latex(vint[1]), latex(vint[2]), latex(fruv), latex(jacobi_flade(r,u,v, text=False)), latex(sol))
     display(Math(string1))
     display(Math(string2))
     display(Math(string3))
@@ -340,10 +374,6 @@ def fladeintegral_af_func_over_flade(f, r, uint, vint, text=True):
     return sol
 
 
-
-def fladeintegral_areal(r, uint, vint):
-    return integrate(jacobi_flade(r), (u, uint[1], uint[2]), (v, vint[1], vint[2]))
-
 #Tager en parameterfremstilling og 2 symboler.
 def jacobi_flade(r,u,v, text=True):
     sol = simplify((diff(r, u).cross(diff(r, v))).norm())
@@ -355,10 +385,6 @@ def jacobi_flade(r,u,v, text=True):
     display(Math(string2))
     return sol
 
-#var er var i parameterfremstilligen
-def kurveintegral_af_f_over_kurve(f, r, var, start, slut):
-    vru = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
-    return integrate(vru*jacobi_kurve(r, var), (var, start, slut))
 
 def rott(V):
     return Matrix([(diff(V[2], y)-diff(V[1], z)), (diff(V[0], z)-diff(V[2], x)), (diff(V[1], x)-diff(V[0], y))])
@@ -538,7 +564,7 @@ def planintegral_af_func_over_plan(f, r, uint, vint, text=True):
 def rumintegral_af_func_over_rumobjekt(f, r, uint, vint, wint, text=True):
     fruv = f.subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
     sol = integrate(fruv*jacobi_rum(r, u, v, w, text=False), (u, uint[1], uint[2]), (v, vint[1], vint[2]), (w, wint[1], wint[2]))
-    if text == None:
+    if text == False:
         return simplify(sol)
     string1 = r'''Rumintegralet \: af \: funktionen \: f\left(x,y,z\right) \: over \: det \: parametriserede \: rumlige \: område \: \Omega_{r} \: defineres \: ved:'''
     string2 = r'''\int_{\Omega_{r}} f \: d\mu = \int_{h}^{l}\int_{c}^{d}\int_{a}^{b}f\left(r\left(u,v,w\right)\right)\mathit{Jacobi}_{r}\left(u,v,w\right)\mathit{dudvdw}'''
@@ -612,9 +638,7 @@ def fladeintegral_areal(r, uint, vint, text=True):
     display(Math(string3))
     string4 = r'''\int_{F_{r}}^{}1d \mu = \int_{{{%s}}}^{{%s}}\int_{{{%s}}}^{{%s}}{%s}d u d v = {%s}''' % (latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(jacobi_flade(r, u, v, text=False)), latex(sol))
     display(Math(string4))
-
     return sol
-
 
 
 def kurveintegral_af_f_over_kurve(f, r, u, start, slut, text=True):
@@ -637,3 +661,41 @@ def kurveintegral_af_f_over_kurve(f, r, u, start, slut, text=True):
     display(Math(string6))
     display(Math(string7))
     return sol
+
+def flux_med_gauss(V, Vvars, r, uint, vint, wint, text=True):
+    divruvw = divv(V, Vvars).subs(x, r[0]).subs(y, r[1]).subs(z, r[2])
+    sol = integrate(divruvw*jacobi_rum(r, u, v, w, text=False), (uint[0], uint[1], uint[2]), (vint[0], vint[1], vint[2]), (wint[0], wint[1], wint[2]))
+    if text==False:
+        return sol
+    string1 = r'''Fra \: Gauss' \: divergens-sætning \: gælder \: følgende:'''
+    string2 = r'''\int_{\Omega_{r}}^{}\mathit{Div}\left(V\right)d \mu=\mathit{Flux}\left(V,{d\mathit{\Omega}}_{r}\right)'''
+    string3 = r'''Derfor \: kan \: den \: totale \: flux \: ud \: gennem \: et \: rumligt \: område \: beregens \: ved'''
+    string4 = r'''\int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}\int_{{%s}}^{{%s}}{%s}{%s}dudvdw = {%s}''' % (latex(wint[1]), latex(wint[2]),latex(vint[1]), latex(vint[2]), latex(uint[1]), latex(uint[2]), latex(divruvw), latex(jacobi_rum(r, u, v, w, text=False)), latex(sol))
+    display(Math(string1))
+    display(Math(string2))
+    display(Math(string3))
+    display(Math(string4))
+    return sol
+
+def jacobi_kurve2(r, u, text=True):
+    sol = sqrt(trigsimp((diff(r,u).dot(diff(r,u)))))
+    if text==False:
+        return sol
+    string1 = r'''Jacobi-funktionen \: for \: en \: kurve \: i \: planen \: og \: rummet \: er \: givet \: ved: \mathit{Jacobi}_{r}\left(u\right)=|r'\left(u\right)| = |\left[\begin{array}{c}
+{%s}  
+\\
+ {%s}   
+\\
+ {%s}   
+\end{array}\right]| = {%s}''' % (latex(diff(r[0],u)), latex(diff(r[1],u)), latex(diff(r[2],u)), latex(sol))
+    display(Math(string1))
+    return sol
+
+
+#Se side 5 i enote 27, for at kunne skrive latex til
+def tengentielle_integral_til_punkt(V, punkt):
+    Vuxuyuz = Matrix([u*punkt[0],u*punkt[1],u*punkt[2]])
+    sol = Matrix([punkt[0],punkt[1],punkt[2]]).dot(Matrix([integrate(V[0].subs(x,Vuxuyuz[0]).subs(y,Vuxuyuz[0]).subs(z,Vuxuyuz[0]), (u,0,1)), integrate(V[0].subs(x,Vuxuyuz[0]).subs(y,Vuxuyuz[0]).subs(z,Vuxuyuz[0]), (u,0,1)), integrate(V[0].subs(x,Vuxuyuz[0]).subs(y,Vuxuyuz[0]).subs(z,Vuxuyuz[0]), (u,0,1))]))
+    return sol
+
+
